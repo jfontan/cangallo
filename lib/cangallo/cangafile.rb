@@ -60,7 +60,7 @@ class Cangallo
 
       "delete" => {
         "action" => lambda do |input|
-          add_head "run-command rm -rf #{input}"
+          add_head "delete #{input}"
         end
       },
 
