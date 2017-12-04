@@ -1,0 +1,108 @@
+#!/bin/bash
+
+IMAGE_NAME="jfontan/cangallo:latest"
+WORKDIR="/home/cangallo"
+
+function help
+{
+  cat <<-EOT
+Execute cangallo in a docker container.
+
+NOTE: The commands can only access files from the current and child
+directories as relative paths.
+
+Commands:
+
+* update: download the latest container image
+* start: start cangallo container
+* stop: stop cangallo container
+* any other command is executed by cangallo
+
+Usage:
+
+* Start the container
+* Run commands
+* Stop the container
+
+$0 update
+$0 start
+$0 add --copy --tag centos7 CentOS-7-x86_64-GenericCloud-1711.qcow2c
+$0 build centos7.canga
+$0 list
+$0 export -c centos7/example example.qcow2
+$0 stop
+EOT
+}
+
+function check
+{
+  out=$(docker inspect -f {{.State.Running}} cangallo 2> /dev/null)
+
+  if [ $? != 0 ]; then
+    echo notexist
+  else
+    if [ $out == true ]; then
+      echo running
+    else
+      echo stopped
+    fi
+  fi
+}
+
+function update
+{
+  stop_container
+
+  docker pull $IMAGE_NAME
+}
+
+function start_container
+{
+  docker create --name cangallo --rm --privileged --tty \
+    --workdir $WORKDIR --volume $PWD:$WORKDIR \
+    --volume $HOME/.cangallo:/root/.cangallo $IMAGE_NAME
+  docker start cangallo
+
+  docker exec cangallo mkdir -p $WORKDIR
+}
+
+function stop_container
+{
+  if [ $(check) != notexist ]; then
+    docker rm --force cangallo
+  fi
+}
+
+function run
+{
+  shift
+
+  docker exec -t cangallo canga $*
+}
+
+case $1 in
+  --help|"")
+    help
+    ;;
+
+  update)
+    update
+    ;;
+
+  start)
+    start_container
+    ;;
+
+  stop)
+    stop_container
+    ;;
+
+  run)
+    run $*
+    ;;
+
+  *)
+    run canga $*
+    ;;
+esac
+
