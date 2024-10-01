@@ -160,10 +160,12 @@ class Cangallo
 
     def self.create(image, parent=nil, size=nil)
       cmd = [:create, '-f qcow2']
-      cmd << "-o backing_file=#{parent}" if parent
+      if parent
+        backing_fmt = File.extname(File.basename(parent)).delete_prefix('.')
+        cmd << "-o backing_file=#{parent},backing_fmt=#{backing_fmt}"
+      end
       cmd << image
       cmd << size if size
-
       execute(*cmd)
     end
   end
