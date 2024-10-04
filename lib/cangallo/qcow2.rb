@@ -45,6 +45,12 @@ class Cangallo
       end
     end
 
+    def self.qemu_img_backing_file_parameter(path)
+      q = Qcow2.new(path)
+      format = q.info['format']
+      "-o backing_file=#{path},backing_fmt=#{format}"
+    end
+
     def initialize(path=nil)
       @path=path
     end
@@ -152,18 +158,12 @@ class Cangallo
     end
 
     def self.create_from_base(origin, destination, size=nil)
-      cmd = [:create, '-f qcow2', "-o backing_file=#{origin}", destination]
-      cmd << size if size
-
-      execute(*cmd)
+      create(destination, origin, size)
     end
 
     def self.create(image, parent=nil, size=nil)
       cmd = [:create, '-f qcow2']
-      if parent
-        backing_fmt = File.extname(File.basename(parent)).delete_prefix('.')
-        cmd << "-o backing_file=#{parent},backing_fmt=#{backing_fmt}"
-      end
+      cmd << Qcow2.qemu_img_backing_file_parameter(parent) if parent
       cmd << image
       cmd << size if size
       execute(*cmd)
