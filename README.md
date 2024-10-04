@@ -342,6 +342,12 @@ NAME                                                      SIZE DAYS_AGO
   remote:ubuntu1404                                   270.4 Mb     88.1
 ```
 
+## Testing
+
+```
+sudo env PATH=$PATH rake
+```
+
 ## License
 
 Cangallo is licensed under the Apache License, Version 2.0.
