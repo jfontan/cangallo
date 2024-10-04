@@ -86,15 +86,14 @@ class Cangallo
       new_path = destination || @path + '.compressed'
 
       command = [:convert, "-p", "-O qcow2"]
-      #command = ["convert", "-p", "-O qcow2"]
       command << '-c' if ops[:compress]
-      command << "-o backing_file=#{parent}" if parent
+      command << Qcow2.qemu_img_backing_file_parameter(parent) if parent
       command += [@path, new_path]
 
       if ops[:only_copy]
         FileUtils.cp(@path, new_path)
       else
-        execute *command
+        execute(*command)
       end
 
       # pp command

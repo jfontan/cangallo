@@ -132,4 +132,55 @@ describe Cangallo::Qcow2 do
       expect(sha1).to eq('fd7c5327c68fcf94b62dc9f58fc1cdb3c8c01258')
     end
   end
+
+  context 'copy image' do
+    before :all do
+      @qcow2_path = File.join(@tmpdir, 'base.qcow2')
+      @raw_path = File.join(@tmpdir, 'base.raw')
+      # # 200 Mb
+      # Cangallo::Qcow2.create(@qcow2_path, File.join(@tmpdir, 'base.qcow2'), 2 * IMAGE_SIZE)
+      # Cangallo::Qcow2.create(@raw_path, File.join(@tmpdir, 'base.raw'), 2 * IMAGE_SIZE)
+    end
+
+    it 'should be able to create it' do
+      expect(File).to exist(@qcow2_path)
+      expect(File).to exist(@raw_path)
+    end
+
+    it 'should be able to copy it (qcow2)' do
+      path = File.join(@tmpdir, 'copy_qcow2_copy.qcow2')
+      q = Cangallo::Qcow2.new(@qcow2_path)
+      q.copy(path, { parent: @qcow2_path })
+
+      expect(File).to exist(path)
+
+      info = Cangallo::Qcow2.new(path).info
+      expect(info).not_to eq(nil)
+
+      expect(info['virtual-size']).to eq(IMAGE_SIZE)
+      expect(info['cluster-size']).to eq(65_536)
+      expect(info['format']).to eq('qcow2')
+      expect(info['actual-size']).to eq(266_240)
+      expect(File.basename(info['backing-filename'])).to eq('base.qcow2')
+      expect(File.basename(info['backing-filename-format'])).to eq('qcow2')
+    end
+
+    it 'should be able to copy it (raw)' do
+      path = File.join(@tmpdir, 'copy_raw_copy.qcow2')
+      q = Cangallo::Qcow2.new(@raw_path)
+      q.copy(path, { parent: @raw_path })
+
+      expect(File).to exist(path)
+
+      info = Cangallo::Qcow2.new(path).info
+      expect(info).not_to eq(nil)
+
+      expect(info['virtual-size']).to eq(IMAGE_SIZE)
+      expect(info['cluster-size']).to eq(65_536)
+      expect(info['format']).to eq('qcow2')
+      expect(info['actual-size']).to eq(266_240)
+      expect(File.basename(info['backing-filename'])).to eq('base.raw')
+      expect(File.basename(info['backing-filename-format'])).to eq('raw')
+    end
+  end
 end
