@@ -133,13 +133,11 @@ describe Cangallo::Qcow2 do
     end
   end
 
-  context 'copy image' do
+  context 'image actions' do
     before :all do
       @qcow2_path = File.join(@tmpdir, 'base.qcow2')
       @raw_path = File.join(@tmpdir, 'base.raw')
-      # # 200 Mb
-      # Cangallo::Qcow2.create(@qcow2_path, File.join(@tmpdir, 'base.qcow2'), 2 * IMAGE_SIZE)
-      # Cangallo::Qcow2.create(@raw_path, File.join(@tmpdir, 'base.raw'), 2 * IMAGE_SIZE)
+      @parent_path = File.join(@tmpdir, 'child_qcow2.qcow2')
     end
 
     it 'should be able to create it' do
@@ -181,6 +179,24 @@ describe Cangallo::Qcow2 do
       expect(info['actual-size']).to eq(266_240)
       expect(File.basename(info['backing-filename'])).to eq('base.raw')
       expect(File.basename(info['backing-filename-format'])).to eq('raw')
+    end
+
+    it 'should be able to sparsify it (qcow2)' do
+      path = File.join(@tmpdir, 'sparsify.qcow2')
+      q = Cangallo::Qcow2.new(@parent_path)
+      q.sparsify(path)
+
+      expect(File).to exist(path)
+
+      info = Cangallo::Qcow2.new(path).info
+      expect(info).not_to eq(nil)
+
+      expect(info['virtual-size']).to eq(2 * IMAGE_SIZE)
+      expect(info['cluster-size']).to eq(65_536)
+      expect(info['format']).to eq('qcow2')
+      expect(info['actual-size']).to eq(200_704)
+      expect(info['backing-filename']).to eq(nil)
+      expect(info['backing-filename-format']).to eq(nil)
     end
   end
 end

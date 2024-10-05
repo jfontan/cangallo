@@ -115,7 +115,7 @@ class Cangallo
       parent = info['backing_file']
       parent_options = ''
 
-      parent_options = "-o backing_file=#{parent}" if parent
+      parent_options = Qcow2.qemu_img_backing_file_parameter(parent) if parent
 
       command = "TMPDIR=#{File.dirname(destination)} virt-sparsify #{parent_options} #{@path} #{destination}"
       status, stdout, stderr = systemu command
